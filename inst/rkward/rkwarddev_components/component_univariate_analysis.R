@@ -67,7 +67,25 @@ uniFrmProbabilities <- rk.XML.frame(
       max=1,
       initial=0,
       id.name="uniSpinp3"
+    ),
+    uniInputp1 <- rk.XML.input(
+      label="p<sub>1</sub>",
+      initial="1/1",
+      id.name="uniInputp1"
+    ),
+    uniInputp2 <- rk.XML.input(
+      label="p<sub>2</sub>",
+      initial="0/1",
+      id.name="uniInputp2"
+    ),
+    uniInputp3 <- rk.XML.input(
+      label="p<sub>3</sub>",
+      initial="0/1",
+      id.name="uniInputp3"
     )
+  ),
+  rk.XML.row(
+    uniChkProbInput <- rk.XML.cbox("Manual input")
   ),
   label="Probabilities",
   id.name="uniFrmProbabilities"
@@ -98,8 +116,8 @@ RRreg.rk.UniDialog <- rk.XML.dialog(
       varsUni
     ),
     rk.XML.col(
-      varUniResponse,
       varUniData,
+      varUniResponse,
       varUniGroup,
       uniDrpModel,
       uniFrmProbabilities,
@@ -113,6 +131,15 @@ RRreg.rk.UniDialog <- rk.XML.dialog(
 
 ## logic section
 RRreg.rk.UniLogic <- rk.XML.logic(
+  rk.XML.connect(governor="current_object", client=varUniData, set="available"),
+  rk.XML.connect(governor=varUniData, client=varsUni, get="available", set="root"),
+  # replace spinboxes with manual input fields
+  rk.XML.connect(governor=uniChkProbInput, client=uniSpinp1, not=TRUE, set="visible"),
+  rk.XML.connect(governor=uniChkProbInput, client=uniInputp1, set="visible"),
+  rk.XML.connect(governor=uniChkProbInput, client=uniSpinp2, not=TRUE, set="visible"),
+  rk.XML.connect(governor=uniChkProbInput, client=uniInputp2, set="visible"),
+  rk.XML.connect(governor=uniChkProbInput, client=uniSpinp3, not=TRUE, set="visible"),
+  rk.XML.connect(governor=uniChkProbInput, client=uniInputp3, set="visible"),
   # two p
   uniLgcModelUQTknown <- rk.XML.convert(list(string=uniDrpModel), mode=c(equals="UQTknown"), id.name="uniLgcModelUQTknown"),
   uniLgcModelUQTunknown <- rk.XML.convert(list(string=uniDrpModel), mode=c(equals="UQTunknown"), id.name="uniLgcModelUQTunknown"),
@@ -151,36 +178,62 @@ RRreg.rk.UniLogic <- rk.XML.logic(
     mode=c(or=""),
     id.name="uniLgcNeedsP3"
   ),
-  uniLgcEnableP2 <- rk.XML.connect(governor=uniLgcNeedsP2, client=uniSpinp2, set="enabled"),
-  uniLgcEnableP3 <- rk.XML.connect(governor=uniLgcNeedsP3, client=uniSpinp3, set="enabled")
+  uniLgcEnableGroup <- rk.XML.connect(governor=uniLgcNeedsP2, client=varUniGroup, set="enabled"),
+  uniLgcRequireGroup <- rk.XML.connect(governor=uniLgcNeedsP2, client=varUniGroup, set="required"),
+  uniLgcEnableSP2 <- rk.XML.connect(governor=uniLgcNeedsP2, client=uniSpinp2, set="enabled"),
+  uniLgcEnableSP3 <- rk.XML.connect(governor=uniLgcNeedsP3, client=uniSpinp3, set="enabled"),
+  uniLgcEnableIP2 <- rk.XML.connect(governor=uniLgcNeedsP2, client=uniInputp2, set="enabled"),
+  uniLgcEnableIP3 <- rk.XML.connect(governor=uniLgcNeedsP3, client=uniInputp3, set="enabled")
 )
 
 # ## wizard section
 
 ## JavaScript calculate
-  RRreg.rk.js.p2.enabled <- rk.JS.vars(uniSpinp2, modifiers="enabled")
-  RRreg.rk.js.p3.enabled <- rk.JS.vars(uniSpinp3, modifiers="enabled")
+  uni.js.p2.enabled <- rk.JS.vars(uniSpinp2, modifiers="enabled")
+  uni.js.p3.enabled <- rk.JS.vars(uniSpinp3, modifiers="enabled")
   RRreg.rk.js.calc <- rk.paste.JS(
-    RRreg.rk.js.p2.enabled,
-    RRreg.rk.js.p3.enabled,
+    uni.js.response.df <- rk.JS.vars(varUniResponse, modifiers="shortname"),
+    uni.js.group.df <- rk.JS.vars(varUniGroup, modifiers="shortname"),
+    uni.js.p2.enabled,
+    uni.js.p3.enabled,
     echo("RRUniResult <- RRuni("),
     js(
       if(varUniResponse){
-        echo("\n  response=", varUniResponse)
+        if(varUniData){
+          echo("\n  response=", uni.js.response.df)
+        } else {
+          echo("\n  response=", varUniResponse)
+        }
       } else {},
       if(varUniData){
         echo(",\n  data=", varUniData)
       } else {},
       echo(",\n  model=\"", uniDrpModel, "\""),
-      if(RRreg.rk.js.p3.enabled){
-        echo(",\n  p=c(", uniSpinp1, ", ", uniSpinp2, ", ", uniSpinp3, ")")
-      } else if(RRreg.rk.js.p2.enabled){
-        echo(",\n  p=c(", uniSpinp1, ", ", uniSpinp2, ")")
+      if(uni.js.p3.enabled){
+        if(uniChkProbInput){
+          echo(",\n  p=c(", uniInputp1, ", ", uniInputp2, ", ", uniInputp3, ")")
+        } else {
+          echo(",\n  p=c(", uniSpinp1, ", ", uniSpinp2, ", ", uniSpinp3, ")")
+        }
+      } else if(uni.js.p2.enabled){
+        if(uniChkProbInput){
+          echo(",\n  p=c(", uniInputp1, ", ", uniInputp2, ")")
+        } else {
+          echo(",\n  p=c(", uniSpinp1, ", ", uniSpinp2, ")")
+        }
       } else {
-        echo(",\n  p=", uniSpinp1)
+        if(uniChkProbInput){
+          echo(",\n  p=", uniInputp1)
+        } else {
+          echo(",\n  p=", uniSpinp1)
+        }
       },
-      if(varUniGroup){
-        echo(",\n  group=", varUniGroup)
+      if(uni.js.p2.enabled && varUniGroup){
+        if(varUniData){
+          echo(",\n  group=", uni.js.group.df)
+        } else {
+          echo(",\n  group=", varUniGroup)
+        }
       } else {}
     ),
     tf(uniChkMLest, opt="MLest", level=2),
@@ -189,4 +242,5 @@ RRreg.rk.UniLogic <- rk.XML.logic(
 
 ## JavaScript printout
   RRreg.rk.js.print <- rk.paste.JS(
+    echo("rk.print(summary(RRUniResult))\n")
   )

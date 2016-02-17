@@ -91,8 +91,8 @@ rk.local({
       #variables=,
       #globals=,
       #preprocess=,
-      calculate=RRreg.rk.js.calc#,
-      #printout=RRreg.rk.js.print,
+      calculate=RRreg.rk.js.calc,
+      printout=RRreg.rk.js.print#,
       #doPrintout=
     ),
     rkh=list(
