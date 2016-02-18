@@ -99,31 +99,87 @@ varLogGroup <- rk.XML.varslot(
   id.name="varLogGroup"
 )
 
-# LRTest
-logFrmLRTest <- rk.XML.frame(
-  logChkLRTest <- rk.XML.cbox(label="Likelihood ratio test on regression coefficients", id.name="logChkLRTest"),
-  label="Options",
-  id.name="logFrmLRTest"
+# n.response
+logSpinNResponse <- rk.XML.spinbox(
+  label="Responses per participant",
+  min=1,
+  initial=1,
+  real=FALSE,
+  id.name="logSpinNResponse"
 )
+
+# LRTest
+logChkLRTest <- rk.XML.cbox(label="Test regression coefficients (likelihood ratio)", id.name="logChkLRTest")
+
+# fit.n
+logSpinFitN <- rk.XML.spinbox(
+  label="Number of fitting replications",
+  min=1,
+  initial=3,
+  real=FALSE,
+  id.name="logSpinFitN"
+)
+
+# EM.max
+logSpinEM <- rk.XML.spinbox(
+  label="EM algorithm",
+  min=1,
+  initial=1000,
+  real=FALSE,
+  id.name="logSpinEM"
+)
+
+# optim.max
+logSpinOptim <- rk.XML.spinbox(
+  label="Optim",
+  min=1,
+  initial=500,
+  real=FALSE,
+  id.name="logSpinOptim"
+)
+
+logFrmMaxIter <- rk.XML.frame(
+  rk.XML.row(
+    logSpinEM,
+    logSpinOptim
+  ),
+  label="Maximum number of iterations",
+  id.name="logFrmMaxIter"
+)
+
 
 logSaveResults <- rk.XML.saveobj("Save results to workspace", initial="RRLogResult")
 
 RRreg.LogDialog <- rk.XML.dialog(
-  rk.XML.row(
-    rk.XML.col(
-      varsLog
-    ),
-    rk.XML.col(
-      varLogData,
-      varLogDependend,
-      varLogFactors,
-      varLogRegFormula,
-      varLogGroup,
-      logDrpModel,
-      logFrmProbabilities,
-      rk.XML.stretch(),
-      logFrmLRTest,
-      logSaveResults
+  rk.XML.tabbook(
+    tabs=list(
+      Data=rk.XML.row(
+        rk.XML.col(
+          varsLog
+        ),
+        rk.XML.col(
+          varLogData,
+          varLogDependend,
+          varLogFactors,
+          varLogGroup,
+          logDrpModel,
+          logFrmProbabilities
+        )
+      ),
+      "Regression Model"=rk.XML.col(
+        varLogRegFormula,
+        rk.XML.stretch()
+      ),
+      "Options"=rk.XML.col(
+        logFrmLRTest,
+        rk.XML.row(
+          logSpinNResponse,
+          logSpinFitN
+        ),
+        logFrmMaxIter,
+        rk.XML.stretch(),
+        logSaveResults
+      )
     )
   ),
   label="Logistic Regression for Randomized Response Data"
@@ -164,14 +220,14 @@ RRreg.LogLogic <- rk.XML.logic(
     mode=c(or=""),
     id.name="logLgcNeedsP2"
   ),
-  logLgcEnableGroup <- rk.XML.connect(governor=logLgcNeedsP2, client=varLogGroup, set="enabled"),
-  logLgcRequireGroup <- rk.XML.connect(governor=logLgcNeedsP2, client=varLogGroup, set="required"),
+  logLgcNeedsGroup <- rk.XML.convert(sources=list(logLgcNeedsP2, logLgcData), mode=c(and=""), id.name="logLgcNeedsGroup"),
+  logLgcEnableGroup <- rk.XML.connect(governor=logLgcNeedsGroup, client=varLogGroup, set="enabled"),
+  logLgcRequireGroup <- rk.XML.connect(governor=logLgcNeedsGroup, client=varLogGroup, set="required"),
   logLgcEnableSP2 <- rk.XML.connect(governor=logLgcNeedsP2, client=logSpinp2, set="enabled"),
   logLgcEnableIP2 <- rk.XML.connect(governor=logLgcNeedsP2, client=logInputp2, set="enabled")
 )
 
 # ## wizard section
-
 ## JavaScript calculate
   log.js.p2.enabled <- rk.JS.vars(logSpinp2, modifiers="enabled")
   RRreg.log.js.calc <- rk.paste.JS(
@@ -206,9 +262,23 @@ RRreg.LogLogic <- rk.XML.logic(
         } else {
           echo(",\n  group=", varLogGroup)
         }
+      } else {},
+      if(logSpinNResponse != 1){
+        echo(",\n  n.response=", logSpinNResponse)
       } else {}
     ),
     tf(logChkLRTest, opt="LR.test", level=2),
+    js(
+      if(logSpinFitN != 3){
+        echo(",\n  fit.n=", logSpinFitN)
+      } else {},
+      if(logSpinEM != 1000){
+        echo(",\n  EM.max=", logSpinEM)
+      } else {},
+      if(logSpinOptim != 500){
+        echo(",\n  optim.max=", logSpinOptim)
+      } else {}
+    ),
     echo("\n)\n\n")
   )
 
