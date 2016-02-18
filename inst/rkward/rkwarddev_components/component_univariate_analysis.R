@@ -9,7 +9,7 @@ varsUni <- rk.XML.varselector(id.name="varsUni")
 varUniResponse <- rk.XML.varslot(
   label="Responses (dichotomous vector)",
   source=varsUni,
-  classes=c("vector"),
+  classes=c("numeric"),
   required=TRUE,
   id.name="varUniResponse"
 )
@@ -96,7 +96,7 @@ uniFrmProbabilities <- rk.XML.frame(
 varUniGroup <- rk.XML.varslot(
   label="Groups (numeric vector)",
   source=varsUni,
-  classes=c("vector"),
+  classes=c("numeric"),
   required=FALSE,
   id.name="varUniGroup"
 )
@@ -126,7 +126,7 @@ RRreg.rk.UniDialog <- rk.XML.dialog(
       uniSaveResults
     )
   ),
-  label="Univariate Analysis"
+  label="Univariate Analysis for Randomized Response Data"
 )
 
 ## logic section

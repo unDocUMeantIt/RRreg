@@ -47,7 +47,8 @@ rk.local({
   ## your plugin dialog and JavaScript should be put here
   ############
 
-  source(file.path(rkt.components.root, "component_univariate_analysis.R"), local=TRUE)
+  source(file.path(rkt.components.root, "component_univariate_analysis.R"), local=TRUE) # main component
+  source(file.path(rkt.components.root, "component_logistic_regression.R"), local=TRUE)
 
   
   ############
@@ -104,15 +105,18 @@ rk.local({
       #technical=
     ),
     create=c("pmap", "xml", "js", "desc"),
+    components=list(
+      RRreg.log.component
+    ),
     overwrite=overwrite,
     #components=list(),, 
     #provides=c("logic", "dialog"), 
     pluginmap=list(name="Univariate Analysis", hierarchy=c("analysis","Randomized Response Data")), 
     tests=FALSE, 
     edit=FALSE, 
-    load=TRUE, 
-    show=TRUE,
-    gen.info="$SRC/inst/rkward/rkwarddev_RRreg_plugin_script.R"
+    load=TRUE,
+#    show=TRUE,
+    gen.info="$SRC/inst/rkward/rkwarddev_components/component_univariate_analysis.R"
   )
 
   # you can make your plugin translatable, see top of script
