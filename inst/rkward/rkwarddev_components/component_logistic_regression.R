@@ -27,7 +27,6 @@ varLogFactors <- rk.XML.varslot(
 )
 
 # formula
-#varLogRegFormula <- rk.XML.cbox("foo")
 varLogRegFormula <- rk.XML.formula(
   label="Regression model",
   fixed=varLogFactors,
@@ -171,7 +170,7 @@ RRreg.LogDialog <- rk.XML.dialog(
         rk.XML.stretch()
       ),
       "Options"=rk.XML.col(
-        logFrmLRTest,
+        logChkLRTest,
         rk.XML.row(
           logSpinNResponse,
           logSpinFitN
