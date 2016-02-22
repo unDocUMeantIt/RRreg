@@ -49,6 +49,7 @@ rk.local({
 
   source(file.path(rkt.components.root, "component_univariate_analysis.R"), local=TRUE) # main component
   source(file.path(rkt.components.root, "component_logistic_regression.R"), local=TRUE)
+  source(file.path(rkt.components.root, "component_linear_regression.R"), local=TRUE)
 
   
   ############
@@ -106,7 +107,8 @@ rk.local({
     ),
     create=c("pmap", "xml", "js", "desc"),
     components=list(
-      RRreg.log.component
+      RRreg.log.component,
+      RRreg.lin.component
     ),
     overwrite=overwrite,
     #components=list(),, 
