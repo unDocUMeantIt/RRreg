@@ -34,59 +34,103 @@ varLinRegFormula <- rk.XML.formula(
   id.name="varLinRegFormula"
 )
 
-# model
-linDrpModel <- rk.XML.dropdown(
-  label="Model specification",
-  options=list(
-    "Warner"=c(val="Warner", chk=TRUE),
-    "UQTknown"=c(val="UQTknown"),
-    "UQTunknown"=c(val="UQTunknown"),
-    "Mangat"=c(val="Mangat"),
-    "Kuk"=c(val="Kuk"),
-    "FR"=c(val="FR"),
-    "Crosswise"=c(val="Crosswise"),
-    "CDM"=c(val="CDM"),
-    "CDMsym"=c(val="CDMsym"),
-    "SLD"=c(val="SLD"),
-    "custom"=c(val="custom")
+linOptSetModels <- rk.XML.optionset(
+  content=rk.XML.row(
+    # model
+    linDrpModel <- rk.XML.dropdown(
+      label="Model specification",
+      options=list(
+        "Warner"=c(val="Warner", chk=TRUE),
+        "UQTknown"=c(val="UQTknown"),
+        "UQTunknown"=c(val="UQTunknown"),
+        "Mangat"=c(val="Mangat"),
+        "Kuk"=c(val="Kuk"),
+        "FR"=c(val="FR"),
+        "Crosswise"=c(val="Crosswise"),
+        "CDM"=c(val="CDM"),
+        "CDMsym"=c(val="CDMsym"),
+        "SLD"=c(val="SLD"),
+        "custom"=c(val="custom")
+      ),
+      id.name="linDrpModel"
+    ),
+    # p
+    linFrmProbabilities <- rk.XML.frame(
+      rk.XML.row(
+        linSpinp1 <- rk.XML.spinbox(
+          label="p<sub>1</sub>",
+          min=0,
+          max=1,
+          initial=1,
+          id.name="linSpinp1"
+        ),
+        linSpinp2 <- rk.XML.spinbox(
+          label="p<sub>2</sub>",
+          min=0,
+          max=1,
+          initial=0,
+          id.name="linSpinp2"
+        ),
+        linInputp1 <- rk.XML.input(
+          label="p<sub>1</sub>",
+          initial="1/1",
+          id.name="linInputp1"
+        ),
+        linInputp2 <- rk.XML.input(
+          label="p<sub>2</sub>",
+          initial="0/1",
+          id.name="linInputp2"
+        )
+      ),
+      rk.XML.row(
+        linChkProbInput <- rk.XML.cbox("Manual input")
+      ),
+      label="Probabilities",
+      id.name="linFrmProbabilities"
+    ),
+    id.name="row_linDrpModel"
   ),
-  id.name="linDrpModel"
+  optioncolumn=list(
+    ocolLinDrpModel <- rk.XML.optioncolumn(connect=linDrpModel, modifier="string", id.name="ocolLinDrpModel")
+  ),
+  logic=rk.XML.logic(
+    # replace spinboxes with manual input fields
+    rk.XML.connect(governor=linChkProbInput, client=linSpinp1, not=TRUE, set="visible"),
+    rk.XML.connect(governor=linChkProbInput, client=linInputp1, set="visible"),
+    rk.XML.connect(governor=linChkProbInput, client=linSpinp2, not=TRUE, set="visible"),
+    rk.XML.connect(governor=linChkProbInput, client=linInputp2, set="visible"),
+    # two p
+    linLgcModelUQTknown <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="UQTknown"), id.name="linLgcModelUQTknown"),
+    linLgcModelUQTunknown <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="UQTunknown"), id.name="linLgcModelUQTunknown"),
+    linLgcModelKuk <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="Kuk"), id.name="linLgcModelKuk"),
+    linLgcModelFR <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="FR"), id.name="linLgcModelFR"),
+    linLgcModelCDM <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="CDM"), id.name="linLgcModelCDM"),
+    linLgcModelCDMsym <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="CDMsym"), id.name="linLgcModelCDMsym"),
+    linLgcModelSLD <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="SLD"), id.name="linLgcModelSLD"),
+    linLgcModelcustom <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="custom"), id.name="linLgcModelcustom"),
+    linLgcNeedsP2 <- rk.XML.convert(
+      sources=list(
+        linLgcModelUQTknown,
+        linLgcModelUQTunknown,
+        linLgcModelKuk, linLgcModelFR,
+        linLgcModelCDM,
+        linLgcModelCDMsym,
+        linLgcModelSLD,
+        linLgcModelcustom
+      ),
+      mode=c(or=""),
+      id.name="linLgcNeedsP2"
+    ),
+    linLgcNeedsGroup <- rk.XML.convert(sources=list(linLgcNeedsP2, linLgcData), mode=c(and=""), id.name="linLgcNeedsGroup"),
+    linLgcEnableGroup <- rk.XML.connect(governor=linLgcNeedsGroup, client=varLinGroup, set="enabled"),
+    linLgcRequireGroup <- rk.XML.connect(governor=linLgcNeedsGroup, client=varLinGroup, set="required"),
+    linLgcEnableSP2 <- rk.XML.connect(governor=linLgcNeedsP2, client=linSpinp2, set="enabled"),
+    linLgcEnableIP2 <- rk.XML.connect(governor=linLgcNeedsP2, client=linInputp2, set="enabled")
+  ),
+  id.name="linOptSetModels"
 )
 
-# p
-linFrmProbabilities <- rk.XML.frame(
-  rk.XML.row(
-    linSpinp1 <- rk.XML.spinbox(
-      label="p<sub>1</sub>",
-      min=0,
-      max=1,
-      initial=1,
-      id.name="linSpinp1"
-    ),
-    linSpinp2 <- rk.XML.spinbox(
-      label="p<sub>2</sub>",
-      min=0,
-      max=1,
-      initial=0,
-      id.name="linSpinp2"
-    ),
-    linInputp1 <- rk.XML.input(
-      label="p<sub>1</sub>",
-      initial="1/1",
-      id.name="linInputp1"
-    ),
-    linInputp2 <- rk.XML.input(
-      label="p<sub>2</sub>",
-      initial="0/1",
-      id.name="linInputp2"
-    )
-  ),
-  rk.XML.row(
-    linChkProbInput <- rk.XML.cbox("Manual input")
-  ),
-  label="Probabilities",
-  id.name="linFrmProbabilities"
-)
+
   
 
 # group
@@ -159,8 +203,7 @@ RRreg.LinDialog <- rk.XML.dialog(
           varLinDependend,
           varLinFactors,
           varLinGroup,
-          linDrpModel,
-          linFrmProbabilities
+          linOptSetModels
         )
       ),
       "Regression Model"=rk.XML.col(
@@ -187,39 +230,7 @@ RRreg.LinLogic <- rk.XML.logic(
   linLgcData <- rk.XML.convert(sources=list(available=varLinData), mode=c(notequals="")),
   rk.XML.connect(governor=linLgcData, client=varLinDependend, set="enabled"),
   rk.XML.connect(governor=linLgcData, client=varLinFactors, set="enabled"),
-  rk.XML.connect(governor=linLgcData, client=varLinRegFormula, set="enabled"),
-  # replace spinboxes with manual input fields
-  rk.XML.connect(governor=linChkProbInput, client=linSpinp1, not=TRUE, set="visible"),
-  rk.XML.connect(governor=linChkProbInput, client=linInputp1, set="visible"),
-  rk.XML.connect(governor=linChkProbInput, client=linSpinp2, not=TRUE, set="visible"),
-  rk.XML.connect(governor=linChkProbInput, client=linInputp2, set="visible"),
-  # two p
-  linLgcModelUQTknown <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="UQTknown"), id.name="linLgcModelUQTknown"),
-  linLgcModelUQTunknown <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="UQTunknown"), id.name="linLgcModelUQTunknown"),
-  linLgcModelKuk <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="Kuk"), id.name="linLgcModelKuk"),
-  linLgcModelFR <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="FR"), id.name="linLgcModelFR"),
-  linLgcModelCDM <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="CDM"), id.name="linLgcModelCDM"),
-  linLgcModelCDMsym <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="CDMsym"), id.name="linLgcModelCDMsym"),
-  linLgcModelSLD <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="SLD"), id.name="linLgcModelSLD"),
-  linLgcModelcustom <- rk.XML.convert(list(string=linDrpModel), mode=c(equals="custom"), id.name="linLgcModelcustom"),
-  linLgcNeedsP2 <- rk.XML.convert(
-    sources=list(
-      linLgcModelUQTknown,
-      linLgcModelUQTunknown,
-      linLgcModelKuk, linLgcModelFR,
-      linLgcModelCDM,
-      linLgcModelCDMsym,
-      linLgcModelSLD,
-      linLgcModelcustom
-    ),
-    mode=c(or=""),
-    id.name="linLgcNeedsP2"
-  ),
-  linLgcNeedsGroup <- rk.XML.convert(sources=list(linLgcNeedsP2, linLgcData), mode=c(and=""), id.name="linLgcNeedsGroup"),
-  linLgcEnableGroup <- rk.XML.connect(governor=linLgcNeedsGroup, client=varLinGroup, set="enabled"),
-  linLgcRequireGroup <- rk.XML.connect(governor=linLgcNeedsGroup, client=varLinGroup, set="required"),
-  linLgcEnableSP2 <- rk.XML.connect(governor=linLgcNeedsP2, client=linSpinp2, set="enabled"),
-  linLgcEnableIP2 <- rk.XML.connect(governor=linLgcNeedsP2, client=linInputp2, set="enabled")
+  rk.XML.connect(governor=linLgcData, client=varLinRegFormula, set="enabled")
 )
 
 # ## wizard section
@@ -237,7 +248,7 @@ RRreg.LinLogic <- rk.XML.logic(
       if(varLinData){
         echo(",\n  data=", varLinData)
       } else {},
-      echo(",\n  model=\"", linDrpModel, "\""),
+#       echo(",\n  model=\"", linDrpModel, "\""),
       if(lin.js.p2.enabled){
         if(linChkProbInput){
           echo(",\n  p=c(", linInputp1, ", ", linInputp2, ")")
